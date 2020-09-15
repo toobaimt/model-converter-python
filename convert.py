@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-
 import argparse
 import os
 
 import d3.model.tools as mt
 import functools as fc
 from d3.model.basemodel import Vector
+
+dataset = 'ModelNet40'
 
 def check_path(path, should_exist):
     """ Check that a path (file or folder) exists or not and return it.
@@ -18,34 +19,47 @@ def check_path(path, should_exist):
 
 def main(args):
 
-    if (args.from_up is None) != (args.to_up is None):
-        raise Exception("from-up and to-up args should be both present or both absent")
+    for trainval in ['train', 'test']:
+        for classes in os.listdir(dataset):
+            # if classes in ['monitor', 'desk', 'chair', 'dresser', 'sofa', 'table', 'night_stand', 'bathtub']:
+            #     continue
+            path = os.path.join(dataset,classes,trainval)
+            for files in os.listdir(path):
+                input = os.path.join(path,files)
 
-    up_conversion = None
-    if args.from_up is not None:
-        up_conversion = (args.from_up, args.to_up)
+                if (args.from_up is None) != (args.to_up is None):
+                    raise Exception("from-up and to-up args should be both present or both absent")
 
-    output = args.output if args.output is not None else '.' + args.type
+                up_conversion = None
+                if args.from_up is not None:
+                    up_conversion = (args.from_up, args.to_up)
 
-    result = mt.convert(args.input, output, up_conversion)
+                #output = args.output if args.output is not None else '.' + args.type
+                dirName = os.path.join('output',classes,trainval)
+                if not os.path.exists(dirName):
+                    os.makedirs(dirName)
+                output = os.path.join(dirName,files[:-4]+".ply")
+                result = mt.convert(input, output, up_conversion)
 
-    if args.output is None:
-        print(result)
-    else:
-        with open(args.output, 'w') as f:
-            f.write(result)
+                if output is None:
+                    print(result)
+                else:
+                    with open(output, 'w') as f:
+                        f.write(result)
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
     parser.set_defaults(func=main)
     parser.add_argument('-v', '--version', action='version', version='1.0')
-    parser.add_argument('-i', '--input', metavar='input',
+    parser.add_argument('-tr', '--train', default='train')
+    '''parser.add_argument('-i', '--input', metavar='input',
                         type=fc.partial(check_path, should_exist=True), default=None,
                         help='Input file')
     parser.add_argument('-o', '--output', metavar='output',
-                        help='Output path')
-    parser.add_argument('-t', '--type', metavar='type',
-                        help='Export type, useless if output is specified')
+                        help='Output path')'''
+    # parser.add_argument('-t', '--type', metavar='type',
+    #                     help='Export type, useless if output is specified')
     parser.add_argument('-fu', '--from-up', metavar='fup', default=None,
                         help="Initial up vector")
     parser.add_argument('-tu', '--to-up', metavar='fup', default=None,

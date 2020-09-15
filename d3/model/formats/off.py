@@ -24,7 +24,9 @@ class OFFParser(TextModelParser):
         :param string: the line to parse
         """
         split = string.split()
-
+        if string != '':
+            if string[0:3] == 'OFF' and len(split[0])>3:
+                split[0] = split[0][3:]
         if string == '' or string == 'OFF':
             pass
         elif self.vertex_number is None:
